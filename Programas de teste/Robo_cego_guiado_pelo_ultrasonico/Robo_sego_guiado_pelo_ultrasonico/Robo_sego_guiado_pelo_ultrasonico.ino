@@ -14,7 +14,34 @@ const int dirpin1 = 13;
 const int dirpin2 = 11;
 int x = 0;
 
- 
+
+//Define os pinos para o trigger e echo do Ultrasônico da frente
+#define pino_trigger 4
+#define pino_echo 5
+
+//Define os pinos para o trigger e echo do Ultrasônico da direita
+#define pino_trigger2 3
+#define pino_echo2 2
+
+
+//Define os pinos para o trigger e echo do Ultrasônico da esqueda
+#define pino_trigger3 8
+#define pino_echo3 6 
+
+//Inicializa o sensor nos pinos definidos acima
+Ultrasonic ultrasonic(pino_trigger, pino_echo);
+
+//Inicializa o sensor nos pinos definidos acima
+Ultrasonic ultrasonic_direita(pino_trigger2, pino_echo2);
+
+//Inicializa o sensor nos pinos definidos acima
+Ultrasonic ultrasonic_esquerda(pino_trigger3, pino_echo3);
+
+
+
+float cmMsec;
+float cmMsec_direita;
+float cmMsec_esquerda;
 
 
 void setup() {
@@ -37,12 +64,22 @@ void loop() {
   long microsec = ultrasonic.timing();
   cmMsec = ultrasonic.convert(microsec, Ultrasonic::CM);
 
+    //Lendo as informações do sensor ultrasônico, em cm
+  float cmMsec_direita;
+  long microsec_direita = ultrasonic_direita.timing();
+  cmMsec_direita = ultrasonic_direita.convert(microsec_direita, Ultrasonic::CM);
+
+    //Lendo as informações do sensor ultrasônico, em cm
+  float cmMsec_esquerda;
+  long microsec_esquerda = ultrasonic_esquerda.timing();
+  cmMsec_esquerda = ultrasonic_esquerda.convert(microsec_esquerda, Ultrasonic::CM);
+
   // Se o robô identificar algo na sua frente, ele ira virar
-  if(cmMsec <= 60)
+  if(cmMsec <= 60 || cmMsec_direita <= 60 || cmMsec_esquerda <= 60)
   {
-    delay(100);
+    delay(1500);
     turnLeft();
-    delay(100);
+    delay(1500);
   }
   else
   {
@@ -67,14 +104,17 @@ void moveForward()
 
 
   //Mandando os pulsos para o driver mover os motores
-  for(x = 0; x < 100; x++) {
+
+    for(x = 0; x < 100; x++) {
       digitalWrite(steppin1, HIGH);
       digitalWrite(steppin2, HIGH);
       delayMicroseconds(1000);
       digitalWrite(steppin1, LOW);
       digitalWrite(steppin2, LOW);
       delayMicroseconds(1000);
-  }
+    }
+
+
   
   
 }
@@ -126,7 +166,7 @@ void turnLeft()
   delay(1);
 
   //Mandando os pulsos para o driver mover os motores
-  for(x = 0; x < 1000; x++) {
+  for(x = 0; x < 500; x++) {
       digitalWrite(steppin1, HIGH);
       digitalWrite(steppin2, HIGH);
       delayMicroseconds(1000);
