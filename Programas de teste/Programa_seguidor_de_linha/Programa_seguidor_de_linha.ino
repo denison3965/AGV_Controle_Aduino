@@ -7,14 +7,6 @@
 //Carrega a biblioteca do sensor ultrassonico
 #include <Ultrasonic.h>
 
-// Declarações para drivers
-const int steppin1 = 7;
-const int steppin2 = 9;
-const int dirpin1 = 13;
-const int dirpin2 = 11;
-
-//Variável para o controle do loop for
-int x = 0;
 
 //Declarações para sensor seguidor de linha
 const int linha_d1 = 1;  //Sensor fora da linha
@@ -26,19 +18,24 @@ const int linha_d6 = 6;     //*____ Sensor dentro da linha ____*
 const int linha_d7 = 7;  //Sensor fora da linha
 const int linha_d8 = 8;  //Sensor fora da linha
 
+// Declaraçôes para os enviar para centro de controle
+const int controller_moveForward = 9;
+const int controller_moveBack = 10;
+const int controller_turnRight = 11;
+const int controller_turnLeft = 12;
 
 //Define os pinos para o trigger e echo do Ultrasônico da frente
-#define pino_trigger 4
-#define pino_echo 5
+#define pino_trigger 13
+#define pino_echo 14
 
 //Define os pinos para o trigger e echo do Ultrasônico da direita
-#define pino_trigger2 3
-#define pino_echo2 2
+#define pino_trigger2 15
+#define pino_echo2 16
 
 
 //Define os pinos para o trigger e echo do Ultrasônico da esqueda
-#define pino_trigger3 8
-#define pino_echo3 6 
+#define pino_trigger3 17
+#define pino_echo3 18
 
 
 //Inicializa o sensor nos pinos definidos acima
@@ -61,11 +58,6 @@ float cmMsec_esquerda;
 bool stop_agv = false;
 
 void setup() {
-  //Declaração de IO, pulso dos dois motores, e a direção dos dois motores
-  pinMode(steppin1, OUTPUT);
-  pinMode(steppin2, OUTPUT);
-  pinMode(dirpin1, OUTPUT);
-  pinMode(dirpin2, OUTPUT);
 
   //Declarando as entradas dos sensores seguidor de linhas
   pinMode(linha_d1, INPUT);
@@ -76,6 +68,13 @@ void setup() {
   pinMode(linha_d6, INPUT);
   pinMode(linha_d7, INPUT);
   pinMode(linha_d8, INPUT);
+
+  
+  //Declarando os controlles para controle de direção do ADV (comunicação entre informação e controle)
+  pinMode(controller_moveForward, OUTPUT);
+  pinMode(controller_moveBack, OUTPUT);
+  pinMode(controller_turnRight, OUTPUT);
+  pinMode(controller_turnLeft, OUTPUT);
 
   
 
@@ -123,104 +122,37 @@ void loop() {
   // Se todos os sensores centrais, conseguirem detectar a linha, e a variavel de controle false, então mover o robo para frente
   if ( !stop_agv && digitalRead(linha_d3) && digitalRead(linha_d4) && digitalRead(linha_d5) && digitalRead(linha_d6) )
   {
-    moveForward(); //Mover para frente
+    //Manda para os controladores para qualquer outro comando nos drivers dos motores
+    //----
+        digitalWrite(controller_moveBack,  LOW );
+        digitalWrite(controller_turnRight, LOW );
+        digitalWrite(controller_turnLeft,  LOW );
+    //---
+    digitalWrite(controller_moveForward, HIGH); //Mover para frente
   }
 
   // Se um dos sensores da esquerda indentificar a linha, então firar para a direita
   if ( !stop_agv && (digitalRead(linha_d1) || digitalRead(linha_d2)) )
   {
-    turnRight(); //Virar para direita
+    //Manda para os controladores para qualquer outro comando nos drivers dos motores
+    //----
+        digitalWrite(controller_moveBack,  LOW );
+        digitalWrite(controller_moveForward, LOW );
+        digitalWrite(controller_turnLeft,  LOW );
+    //---
+    digitalWrite(controller_turnRight, HIGH); //Virar para Direita
   }
 
   if ( !stop_agv && (digitalRead(linha_d7) || digitalRead(linha_d8)) )
   {
-    turnLeft(); //Viara para Esquerda
+    //Manda para os controladores para qualquer outro comando nos drivers dos motores
+    //----
+        digitalWrite(controller_moveBack,  LOW );
+        digitalWrite(controller_moveForward, LOW );
+        digitalWrite(controller_turnRight,  LOW );
+    //---
+    digitalWrite(controller_turnLeft, HIGH); //Viara para Esquerda
   }
 
 }
 // -- END VOID LOOP --
-
-
-/*--------------------------------------------------------------------
- * FUNÇÔES PARA FAZER O ROBO SE MOVER EM DIVERSAS DIREÇOES
- * 
- * -------------------------------------------------------------------*/
-
-
-//FUNÇÃO PARA ANDAR PARA A FRENTE
-void moveForward()
-{
-  //Setando a direção de rotação de cada motor
-  digitalWrite(dirpin1, LOW);
-  digitalWrite(dirpin2, HIGH);
-
-
-  //Mandando os pulsos para o driver mover os motores
-  for(x = 0; x < 100; x++) {
-      digitalWrite(steppin1, HIGH);
-      digitalWrite(steppin2, HIGH);
-      delayMicroseconds(1000);
-      digitalWrite(steppin1, LOW);
-      digitalWrite(steppin2, LOW);
-      delayMicroseconds(1000);
-  }
-  
-  
-}
-
-//FUNÇÃO PARA ANDAR PARA A TRÀS
-void moveBack()
-{
-  //Setando a direção de rotação de cada motor
-  digitalWrite(dirpin1, HIGH);
-  digitalWrite(dirpin2, LOW);
-
-
-  //Mandando os pulsos para o driver mover os motores
-  for(x = 0; x < 100; x++) {
-      digitalWrite(steppin1, HIGH);
-      digitalWrite(steppin2, HIGH);
-      delayMicroseconds(1000);
-      digitalWrite(steppin1, LOW);
-      digitalWrite(steppin2, LOW);
-      delayMicroseconds(1000);
-  }
-}
-
-//FUNÇÃO PARA VIRAR A DIREITA
-void turnRight()
-{
-  //Setando a direção de rotação de cada motor
-  digitalWrite(dirpin1, LOW);
-  digitalWrite(dirpin2, LOW);
-  delay(1);
-
-  //Mandando os pulsos para o driver mover os motores
-  for(x = 0; x < 50; x++) {
-      digitalWrite(steppin1, HIGH);
-      digitalWrite(steppin2, HIGH);
-      delayMicroseconds(1000);
-      digitalWrite(steppin1, LOW);
-      digitalWrite(steppin2, LOW);
-      delayMicroseconds(1000);
-  }  
-}
-
-//FUNÇÃO PARA VIRAR A ESQUERDA
-void turnLeft()
-{
-  //Setando a direção de rotação de cada motor
-  digitalWrite(dirpin1, HIGH);
-  digitalWrite(dirpin2, HIGH);
-  delay(1);
-
-  //Mandando os pulsos para o driver mover os motores
-  for(x = 0; x < 50; x++) {
-      digitalWrite(steppin1, HIGH);
-      digitalWrite(steppin2, HIGH);
-      delayMicroseconds(1000);
-      digitalWrite(steppin1, LOW);
-      digitalWrite(steppin2, LOW);
-      delayMicroseconds(1000);
-  }
-}
